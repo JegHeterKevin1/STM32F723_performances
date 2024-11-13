@@ -120,7 +120,7 @@ uint32_t aDST_Buffer[BUFFER_SIZE];
 
     aSRC_Buffer[i] = aSRC_const_Buffer[i];
   }
-
+  SCB_CleanDCache();
   if(HAL_DMA_Start(&hdma1,(uint32_t)&aSRC_Buffer, (uint32_t)&aDST_Buffer, BUFFER_SIZE) != HAL_OK)
   {
     /* Transfer Error */
@@ -131,6 +131,7 @@ uint32_t aDST_Buffer[BUFFER_SIZE];
 
   /* Testing the two memory integrity */
   result = 0;
+  SCB_InvalidateDCache();
   for(i=0; i<BUFFER_SIZE;i++){
     if(aSRC_Buffer[i] != aDST_Buffer[i]){
       result--;
