@@ -8,3 +8,5 @@ Debug/*
 *.chm
 *.ioc
 *.launch
+*.cproject
+*.xml
