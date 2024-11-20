@@ -39,11 +39,12 @@
 /* USER CODE BEGIN PM */
 
 
-//#define IDLE_MODE
+//#define RUN_MODE
 //#define IDLE_IT_MODE
 //#define SLEEP_MODE
-#define STOP_MODE
-
+//#define STOP_MODE
+#define RTC_MODE
+//#define GPIO_DISABLED_MODE
 
 /* USER CODE END PM */
 
@@ -221,14 +222,12 @@ uint32_t findNextPrime(uint32_t n)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 
-
 #if defined(SLEEP_MODE) || defined(STOP_MODE)
 	  HAL_ResumeTick();
 #if defined(STOP_MODE)
 	  SYSCLKConfig_WAKE();
 #endif
 #endif
-
 	  if(GPIO_Pin == USER_BUTTON_PIN){
 		  pNumber = findNextPrime(cntr & 0x7FFFFFFF);
 		  cntr = pNumber+1;
@@ -304,11 +303,11 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
   /* Configure USER Button */
-#if (defined(SLEEP_MODE) || defined(IDLE_IT_MODE) || defined(STOP_MODE)) && !defined(IDLE_MODE)
+#if (defined(SLEEP_MODE) || defined(IDLE_IT_MODE) || defined(STOP_MODE)) && !defined(RUN_MODE)
   BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
 #endif
 
-#if defined (IDLE_MODE) && !defined(SLEEP_MODE) && !defined(STOP_MODE) && !defined(IDLE_IT_MODE)
+#if defined (RUN_MODE) && !defined(SLEEP_MODE) && !defined(STOP_MODE) && !defined(IDLE_IT_MODE)
   BSP_PB_Init(BUTTON_USER, BUTTON_MODE_GPIO);
 #endif
   /* USER CODE END SysInit */
@@ -317,10 +316,24 @@ int main(void)
   /* USER CODE END 2 */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+
+  RTC_HandleTypeDef hrtc;
+
+  hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
+  hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
+  hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
+  hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
+  hrtc.Init.SynchPrediv = 0xF9;
+  hrtc.Init.AsynchPrediv = 0x7F;
+
+  HAL_RTC_Init(&hrtc);
+
+
   while (1)
   {
     /* USER CODE END WHILE */
-#if defined (IDLE_MODE) && !defined(SLEEP_MODE) && !defined(STOP_MODE) && !defined(IDLE_IT_MODE)
+#if defined (RUN_MODE) && !defined(SLEEP_MODE) && !defined(STOP_MODE) && !defined(IDLE_IT_MODE)
 
     if(BSP_PB_GetState(BUTTON_USER) != RESET){
       pNumber = findNextPrime(cntr & 0x7FFFFFFF);
@@ -333,7 +346,9 @@ int main(void)
 
 #if !defined(SLEEP_MODE) && !defined(STOP_MODE)
     cntr++;
+#if !defined(RTC_MODE)
     HAL_Delay(100);
+#endif
 #endif
 
 #if defined(SLEEP_MODE)
@@ -345,6 +360,11 @@ int main(void)
     HAL_SuspendTick();
     HAL_PWREx_EnableFlashPowerDown();
     HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
+#endif
+
+#if defined(RTC_MODE)
+	  HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 0xCD, 0x0);
+	  HAL_PWREx_EnableFlashPowerDown();
 #endif
 
     /* USER CODE BEGIN 3 */
@@ -433,6 +453,8 @@ void MPU_Config(void)
   HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 
 }
+
+
 
 /**
   * @brief  This function is executed in case of error occurrence.

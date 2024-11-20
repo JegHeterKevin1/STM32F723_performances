@@ -196,6 +196,10 @@ void EXTI0_IRQHandler(void){
 
 }
 
+void RTC_WKUP_IRQHandler(void){
+
+}
+
 /******************************************************************************/
 /* STM32F7xx Peripheral Interrupt Handlers                                    */
 /* Add here the Interrupt Handlers for the used peripherals.                  */

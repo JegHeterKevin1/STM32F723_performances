@@ -54,7 +54,7 @@ typedef struct
   uint32_t OscillatorType;       /*!< The oscillators to be configured.
                                       This parameter can be a value of @ref RCC_Oscillator_Type                   */
 
-  uint32_t HSEState;             /*!< The new state of the HSE.
+  uint32_t HSEState;             /*!< The new sta²te of the HSE.
                                       This parameter can be a value of @ref RCC_HSE_Config                        */
 
   uint32_t LSEState;             /*!< The new state of the LSE.
