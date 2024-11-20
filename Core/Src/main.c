@@ -40,6 +40,7 @@
 
 
 //#define IDLE_MODE
+//#define IDLE_IT_MODE
 #define SLEEP_MODE
 //#define STOP_MODE
 
@@ -189,6 +190,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 		  snprintf(data,15,"%lu", pNumber);
 		  BSP_LCD_DisplayStringAtLine(4, (uint8_t*) data);
 	  }
+	  HAL_ResumeTick();
 }
 
 
@@ -199,7 +201,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
 
   /* USER CODE END 1 */
   MPU_Config();
@@ -222,6 +223,9 @@ int main(void)
 
   /* Configure the system clock */
   SystemClock_Config();
+#if defined(SLEEP_MODE)
+	__HAL_RCC_PWR_CLK_ENABLE();
+#endif
 
   /* LCD Init */
   BSP_LCD_Init();
@@ -256,15 +260,14 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
   /* Configure USER Button */
-#if !defined (IDLE_MODE) && defined(SLEEP_MODE) && !defined(STOP_MODE)
+#if (defined(SLEEP_MODE) || defined(IDLE_IT_MODE)) && !defined(STOP_MODE) && !defined(IDLE_MODE)
   BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
 #endif
 
-#if defined (IDLE_MODE) && !defined(SLEEP_MODE) && !defined(STOP_MODE)
+#if defined (IDLE_MODE) && !defined(SLEEP_MODE) && !defined(STOP_MODE) && !defined(IDLE_IT_MODE)
   BSP_PB_Init(BUTTON_USER, BUTTON_MODE_GPIO);
 #endif
   /* USER CODE END SysInit */
-
 
   /* USER CODE BEGIN 2 */
   /* USER CODE END 2 */
@@ -273,7 +276,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-#if defined (IDLE_MODE) && !defined(SLEEP_MODE) && !defined(STOP_MODE)
+#if defined (IDLE_MODE) && !defined(SLEEP_MODE) && !defined(STOP_MODE) && !defined(IDLE_IT_MODE)
 
     if(BSP_PB_GetState(BUTTON_USER) != RESET){
       pNumber = findNextPrime(cntr & 0x7FFFFFFF);
@@ -282,10 +285,18 @@ int main(void)
       BSP_LCD_DisplayStringAtLine(4, (uint8_t*)data);
     }
 
-    cntr++;
 #endif
 
+#if !defined(SLEEP_MODE) && !defined(STOP_MODE)
+    cntr++;
     HAL_Delay(100);
+#endif
+
+#if defined(SLEEP_MODE)
+    HAL_SuspendTick();
+    HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
+#endif
+
     /* USER CODE BEGIN 3 */
   }
   free(data);

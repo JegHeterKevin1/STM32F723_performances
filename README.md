@@ -40,7 +40,8 @@ The project uses the following steps:
 | Mode                 | Current Consumption |
 |----------------------|-------------|------
 | Idle                 |  135 mA              |
-| Sleep mode   		   |  Y mA                 |
-| Stop mode   		   |  Z mA              	 |
-| GPIO disabled   	   |  W mA              	 |
+| Idle with IT         |  139 mA              |
+| Sleep mode   		   |  37 mA               |
+| Stop mode   		   |  Z mA                |
+| GPIO disabled   	   |  W mA                |
 
