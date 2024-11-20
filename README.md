@@ -33,3 +33,14 @@ The project uses the following steps:
 
 4. **Display Results**:
    - Displays the computed prime number on an LCD.
+   
+   
+## RESULTS OF POWER CONSUMPTION 
+
+| Mode                 | Current Consumption |
+|----------------------|-------------|------
+| Idle                 |  135 mA              |
+| Sleep mode   		   |  Y mA                 |
+| Stop mode   		   |  Z mA              	 |
+| GPIO disabled   	   |  W mA              	 |
+

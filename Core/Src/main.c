@@ -38,12 +38,23 @@
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 
+
+//#define IDLE_MODE
+#define SLEEP_MODE
+//#define STOP_MODE
+
+
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
 RNG_HandleTypeDef RngHandle;
+
+uint32_t cntr = 0;
+volatile uint32_t pNumber = 0;
+
+char *data = NULL; // pointer used to display value on a screen
 
 /* Used for storing 128 Random 32bit Numbers */
 uint32_t aRandom32bit[MILLER_RABIN_MAX_ITERATION];
@@ -170,6 +181,17 @@ uint32_t findNextPrime(uint32_t n)
 }
 /* USER CODE END 0 */
 
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+
+	  if(GPIO_Pin == USER_BUTTON_PIN){
+		  pNumber = findNextPrime(cntr & 0x7FFFFFFF);
+		  cntr = pNumber+1;
+		  snprintf(data,15,"%lu", pNumber);
+		  BSP_LCD_DisplayStringAtLine(4, (uint8_t*) data);
+	  }
+}
+
+
 /**
   * @brief  The application entry point.
   * @retval int
@@ -177,10 +199,7 @@ uint32_t findNextPrime(uint32_t n)
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  uint32_t cntr = 0;
-  volatile uint32_t pNumber = 0;
 
-  char *data = NULL; // pointer used to display value on a screen
 
   /* USER CODE END 1 */
   MPU_Config();
@@ -214,6 +233,7 @@ int main(void)
   /* Set the Back Color */
   BSP_LCD_SetBackColor(LCD_COLOR_BLACK);
 
+
   /*## Configure the RNG peripheral */
   RngHandle.Instance = RNG;
 
@@ -236,7 +256,13 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
   /* Configure USER Button */
+#if !defined (IDLE_MODE) && defined(SLEEP_MODE) && !defined(STOP_MODE)
+  BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
+#endif
+
+#if defined (IDLE_MODE) && !defined(SLEEP_MODE) && !defined(STOP_MODE)
   BSP_PB_Init(BUTTON_USER, BUTTON_MODE_GPIO);
+#endif
   /* USER CODE END SysInit */
 
 
@@ -247,6 +273,8 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+#if defined (IDLE_MODE) && !defined(SLEEP_MODE) && !defined(STOP_MODE)
+
     if(BSP_PB_GetState(BUTTON_USER) != RESET){
       pNumber = findNextPrime(cntr & 0x7FFFFFFF);
       cntr = pNumber;
@@ -255,6 +283,8 @@ int main(void)
     }
 
     cntr++;
+#endif
+
     HAL_Delay(100);
     /* USER CODE BEGIN 3 */
   }

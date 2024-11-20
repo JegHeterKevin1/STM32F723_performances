@@ -190,6 +190,12 @@ void SysTick_Handler(void)
   /* USER CODE END SysTick_IRQn 1 */
 }
 
+void EXTI0_IRQHandler(void){
+
+	HAL_GPIO_EXTI_IRQHandler(WAKEUP_BUTTON_PIN);
+
+}
+
 /******************************************************************************/
 /* STM32F7xx Peripheral Interrupt Handlers                                    */
 /* Add here the Interrupt Handlers for the used peripherals.                  */
