@@ -1,0 +1,10 @@
+Debug/*
+*.elf
+*.hex
+*.o
+*.png
+*.css
+*.html
+*.chm
+*.ioc
+*.launch
