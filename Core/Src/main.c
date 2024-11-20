@@ -41,8 +41,8 @@
 
 //#define IDLE_MODE
 //#define IDLE_IT_MODE
-#define SLEEP_MODE
-//#define STOP_MODE
+//#define SLEEP_MODE
+#define STOP_MODE
 
 
 /* USER CODE END PM */
@@ -70,6 +70,43 @@ void MPU_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+/**
+  * @brief  Configures system clock after wake-up from STOP: enable HSE, PLL
+  *         and select PLL as system clock source.
+  * @param  None
+  * @retval None
+  */
+static void SYSCLKConfig_WAKE(void)
+{
+  RCC_ClkInitTypeDef RCC_ClkInitStruct;
+  RCC_OscInitTypeDef RCC_OscInitStruct;
+  uint32_t pFLatency = 0;
+
+  /* Get the Oscillators configuration according to the internal RCC registers */
+  HAL_RCC_GetOscConfig(&RCC_OscInitStruct);
+
+  /* After wake-up from STOP reconfigure the system clock: Enable HSE and PLL */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /* Get the Clocks configuration according to the internal RCC registers */
+  HAL_RCC_GetClockConfig(&RCC_ClkInitStruct, &pFLatency);
+
+  /* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2
+     clocks dividers */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_SYSCLK;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  if(HAL_RCC_ClockConfig(&RCC_ClkInitStruct, pFLatency) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
 
 //Generate n rand number inside table
 void generateRandNumber(uint32_t n, uint32_t *table){
@@ -184,13 +221,20 @@ uint32_t findNextPrime(uint32_t n)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 
+
+#if defined(SLEEP_MODE) || defined(STOP_MODE)
+	  HAL_ResumeTick();
+#if defined(STOP_MODE)
+	  SYSCLKConfig_WAKE();
+#endif
+#endif
+
 	  if(GPIO_Pin == USER_BUTTON_PIN){
 		  pNumber = findNextPrime(cntr & 0x7FFFFFFF);
 		  cntr = pNumber+1;
 		  snprintf(data,15,"%lu", pNumber);
 		  BSP_LCD_DisplayStringAtLine(4, (uint8_t*) data);
 	  }
-	  HAL_ResumeTick();
 }
 
 
@@ -223,7 +267,7 @@ int main(void)
 
   /* Configure the system clock */
   SystemClock_Config();
-#if defined(SLEEP_MODE)
+#if defined(SLEEP_MODE) || defined(STOP_MODE)
 	__HAL_RCC_PWR_CLK_ENABLE();
 #endif
 
@@ -260,7 +304,7 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
   /* Configure USER Button */
-#if (defined(SLEEP_MODE) || defined(IDLE_IT_MODE)) && !defined(STOP_MODE) && !defined(IDLE_MODE)
+#if (defined(SLEEP_MODE) || defined(IDLE_IT_MODE) || defined(STOP_MODE)) && !defined(IDLE_MODE)
   BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
 #endif
 
@@ -295,6 +339,12 @@ int main(void)
 #if defined(SLEEP_MODE)
     HAL_SuspendTick();
     HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
+#endif
+
+#if defined(STOP_MODE)
+    HAL_SuspendTick();
+    HAL_PWREx_EnableFlashPowerDown();
+    HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
 #endif
 
     /* USER CODE BEGIN 3 */

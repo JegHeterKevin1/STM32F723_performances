@@ -42,6 +42,6 @@ The project uses the following steps:
 | Idle                 |  135 mA              |
 | Idle with IT         |  139 mA              |
 | Sleep mode   		   |  37 mA               |
-| Stop mode   		   |  Z mA                |
+| Stop mode   		   |  7 mA                |
 | GPIO disabled   	   |  W mA                |
 
