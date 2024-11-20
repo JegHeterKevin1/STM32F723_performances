@@ -23,3 +23,9 @@ To resolve this issue, we used the following functions to clean and invalidate t
 // Example code to resolve cache inconsistency
 SCB_CleanDCache_by_Addr((uint32_t*)srcBuffer, sizeof(srcBuffer)); // Clean the cache
 SCB_InvalidateDCache_by_Addr((uint32_t*)destBuffer, sizeof(destBuffer)); // Invalidate the cache
+```
+
+---
+
+This `README.md` outlines the purpose of the branch-specific project, focusing on cache management issues when using DMA with STM32 microcontrollers. Let me know if you need any additional information or modifications!
+
