@@ -25,4 +25,4 @@ This project evaluates the performance of sorting a large array using the `qsort
 
 1. Clone this repository to your local machine:
    ```bash
-   git clone https://github.com/JegHeterKevin1/STM32F723_performances.git
+   git clone https://github.com/Kevin-Pottier/STM32F723_performances.git
